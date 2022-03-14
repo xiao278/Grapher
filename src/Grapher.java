@@ -66,6 +66,13 @@ public class Grapher {
                 graph();
             }
         });
+        frame.addMouseWheelListener(new MouseWheelListener() {
+            @Override
+            public void mouseWheelMoved(MouseWheelEvent e) {
+                SCALE *= Math.pow(1.1,e.getWheelRotation());
+                graph();
+            }
+        });
         canvas = new JPanel();
         canvas.setBackground(Color.WHITE);
         frame.add(canvas);
