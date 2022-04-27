@@ -199,7 +199,7 @@ public class Grapher {
                     double b = grid[i + 1][j];
                     double span = (a - b);
                     double lerp = Math.abs((threshold - a) / span);
-                    arr[count] = new Point(i * sqSize, (int) Math.round(j * sqSize - lerp * sqSize));
+                    arr[count] = new Point((int) Math.round(i * sqSize + lerp * sqSize), j * sqSize);
                     count++;
                 }
                 if ((grid[i + 1][j] > threshold) != (grid[i + 1][j + 1] > threshold)) {
@@ -207,7 +207,7 @@ public class Grapher {
                     double b = grid[i + 1][j + 1];
                     double span = (a - b);
                     double lerp = Math.abs((threshold - a) / span);
-                    arr[count] = new Point((int) Math.round(i * sqSize + lerp * sqSize), j * sqSize);
+                    arr[count] = new Point((i + 1) * sqSize, (int) Math.round(j * sqSize + lerp * sqSize));
                     count++;
                 }
                 if ((grid[i + 1][j + 1] > threshold) != (grid[i][j + 1] > threshold)) {
@@ -215,7 +215,7 @@ public class Grapher {
                     double b = grid[i][j + 1];
                     double span = (a - b);
                     double lerp = Math.abs((threshold - a) / span);
-                    arr[count] = new Point(i * sqSize, (int) Math.round(j * sqSize + lerp * sqSize));
+                    arr[count] = new Point((int) Math.round((i + 1) * sqSize - lerp * sqSize), (j + 1) * sqSize);
                     count++;
                 }
                 if ((grid[i][j + 1] > threshold) != (grid[i][j] > threshold)) {
@@ -223,7 +223,7 @@ public class Grapher {
                     double b = grid[i][j];
                     double span = (a - b);
                     double lerp = Math.abs((threshold - a) / span);
-                    arr[count] = new Point((int) Math.round(i * sqSize - lerp * sqSize), j * sqSize);
+                    arr[count] = new Point(i * sqSize, (int) Math.round((j + 1) * sqSize - lerp * sqSize));
                     count++;
                 }
                 if (count == 2) {
