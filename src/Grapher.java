@@ -8,7 +8,6 @@ import java.awt.event.*;
 public class Grapher {
     private static Expression expression;
     private static double threshold;
-    private static boolean implicit;
     private static JFrame frame;
     private static JPanel canvas;
     private static Color MARKER = new Color(232,232,232);
@@ -17,7 +16,7 @@ public class Grapher {
     private static Point lastMousePos;
     private static double SCALE = 0.01;
     private static int samples = 250;
-    private static final int sqSize = 10;
+    private static final int sqSize = 8;
 
     private static final int LEFT = 0;
     private static final int RIGHT = 1;
@@ -45,11 +44,11 @@ public class Grapher {
                         split = raw.split("=");
                         expression = new ExpressionBuilder(split[0]).variable("x").variable("y").build();
                         threshold = Double.parseDouble(split[1]);
-                        implicit = true;
                     }
                     else {
-                        expression = new ExpressionBuilder(raw).variable("x").build();
-                        implicit = false;
+                        String temp = "y - " + raw;
+                        expression = new ExpressionBuilder(temp).variable("x").variable("y").build();
+                        threshold = 0;
                     }
                 } catch (Exception e) {
                     showError(e.getMessage());
@@ -107,27 +106,6 @@ public class Grapher {
         }
         marchSquare(grid);
     }
-    private static void graph(){
-        double leftBound = offsetX - frame.getWidth() * SCALE;
-        double rightBound = offsetX + frame.getWidth() * SCALE;
-        double downBound = offsetY - frame.getHeight() * SCALE;
-        double upBound = offsetY + frame.getHeight() * SCALE;
-
-        double[] bounds = {leftBound, rightBound, downBound, upBound};
-        double widthSize = rightBound - leftBound;
-        double dx = widthSize / (samples + 1);
-        Graphics graphics = canvas.getGraphics();
-        graphics.setColor(Color.RED);
-        for (int i = 0; i < samples + 2; i++) {
-            double x = leftBound + (i * dx);
-            double y = expression.setVariable("x",x).evaluate();
-            if ((y >= downBound) && (y <= upBound)) {
-                Point p = cartToPix(x, y, bounds);
-                graphics.drawOval(p.x, p.y, 1, 1);
-            }
-        }
-        canvas.paintComponents(graphics);
-    }
     private static void clear() {
         Graphics graphics = canvas.getGraphics();
         //Color temp = graphics.getColor();
@@ -138,12 +116,7 @@ public class Grapher {
     private static void regraph() {
         clear();
         drawAxis();
-        if (implicit) {
-            implicitGraph();
-        }
-        else {
-            graph();
-        }
+        implicitGraph();
     }
     private static Point cartToPix(double leftBound, double rightBound, double downBound, double upBound, double x, double y) {
         double widthSize = rightBound - leftBound;
@@ -180,10 +153,10 @@ public class Grapher {
         Point center = cartToPix( 0, 0, bounds);
         if (bounds[LEFT] <= 0 && bounds[RIGHT] >= 0) {
             graphics.drawLine(center.x, 0, center.x, frame.getHeight());
+            graphics.fillPolygon(new int[]{center.x - 3, center.x, center.x + 3}, new int[]{10, 0, 10}, 3);
         }
         if (bounds[DOWN] <= 0 && bounds[UP] >= 0) {
             graphics.drawLine(0, center.y, frame.getWidth(), center.y);
-            graphics.fillPolygon(new int[]{0, 10, 10}, new int[]{center.y, center.y - 3, center.y + 3}, 3);
             graphics.fillPolygon(new int[]{frame.getWidth() - 10, frame.getWidth() - 20, frame.getWidth() - 20}, new int[]{center.y, center.y + 3, center.y - 3}, 3);
         }
     }
@@ -199,32 +172,40 @@ public class Grapher {
                     double b = grid[i + 1][j];
                     double span = (a - b);
                     double lerp = Math.abs((threshold - a) / span);
-                    arr[count] = new Point((int) Math.round(i * sqSize + lerp * sqSize), j * sqSize);
-                    count++;
+                    if (lerp >= 0 || lerp <= 1) {
+                        arr[count] = new Point((int) Math.round(i * sqSize + lerp * sqSize), j * sqSize);
+                        count++;
+                    }
                 }
                 if ((grid[i + 1][j] > threshold) != (grid[i + 1][j + 1] > threshold)) {
                     double a = grid[i + 1][j];
                     double b = grid[i + 1][j + 1];
                     double span = (a - b);
                     double lerp = Math.abs((threshold - a) / span);
-                    arr[count] = new Point((i + 1) * sqSize, (int) Math.round(j * sqSize + lerp * sqSize));
-                    count++;
+                    if (lerp >= 0 || lerp <= 1) {
+                        arr[count] = new Point((i + 1) * sqSize, (int) Math.round(j * sqSize + lerp * sqSize));
+                        count++;
+                    }
                 }
                 if ((grid[i + 1][j + 1] > threshold) != (grid[i][j + 1] > threshold)) {
                     double a = grid[i + 1][j + 1];
                     double b = grid[i][j + 1];
                     double span = (a - b);
                     double lerp = Math.abs((threshold - a) / span);
-                    arr[count] = new Point((int) Math.round((i + 1) * sqSize - lerp * sqSize), (j + 1) * sqSize);
-                    count++;
+                    if (lerp >= 0 || lerp <= 1) {
+                        arr[count] = new Point((int) Math.round((i + 1) * sqSize - lerp * sqSize), (j + 1) * sqSize);
+                        count++;
+                    }
                 }
                 if ((grid[i][j + 1] > threshold) != (grid[i][j] > threshold)) {
                     double a = grid[i][j + 1];
                     double b = grid[i][j];
                     double span = (a - b);
                     double lerp = Math.abs((threshold - a) / span);
-                    arr[count] = new Point(i * sqSize, (int) Math.round((j + 1) * sqSize - lerp * sqSize));
-                    count++;
+                    if (lerp >= 0 || lerp <= 1) {
+                        arr[count] = new Point(i * sqSize, (int) Math.round((j + 1) * sqSize - lerp * sqSize));
+                        count++;
+                    }
                 }
                 if (count == 2) {
                     graphics.drawLine(arr[0].x, arr[0].y, arr[1].x, arr[1].y);
